@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear Usuario</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+   <div class = contenedor>
+        <h1>CREAR USUARIO</h1>
+    </div>
+    <div class = contenedor1>
+      <label>NOMBRE COMPLETO</label><br>
+      <input type="text" class="input" id="ncusr"><br><br>
+      <label>EMAIL</label><br>
+      <input type="email" class="input" id="email"><br><br>
+      <label>CONTRASEÑA</label><br>
+      <input type="password" class="input" id="pass"><br><br>
+      <label for="opcion">ROL</label><br>
+      <select id="opcion" class= "input" name="opcion">
+        <option value="PROFESOR">PROFESOR</option>
+        <option value="ESTUDIANTE">ESTUDIANTE</option>
+        <option value="ADMINISTRADOR">ADMINISTRADOR</option>
+      </select><br><br>
+      <button type="button" id="btCrea">CREAR CUENTA</button>
+    </div>
+    <script src="CrearUsr.js"></script>
+</body>
+</html>
