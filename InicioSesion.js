@@ -6,17 +6,16 @@ document.getElementById("btIni").addEventListener("click", async () => {
     const res = await fetch("http://localhost:3000/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, contrasena })
+      body: JSON.stringify({ email, contrasena }),
     });
 
     const result = await res.json();
-if (result.success) {
-  localStorage.setItem("usuario", JSON.stringify(result.user));
-  window.location.href = "inicio.html";
-} else {
-  alert(result.message);
-}
-
+    if (result.success) {
+      localStorage.setItem("usuario", JSON.stringify(result.user));
+      window.location.href = "inicio.html";
+    } else {
+      alert(result.message);
+    }
   } catch (err) {
     console.error(err);
     alert(" Error de conexión con el servidor");
@@ -26,3 +25,4 @@ if (result.success) {
 document.getElementById("btCre").addEventListener("click", () => {
   window.location.href = "CrearUsuario.html";
 });
+
