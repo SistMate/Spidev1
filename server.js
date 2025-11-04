@@ -38,7 +38,7 @@ passport.use(new GoogleStrategy({
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 app.get("/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/inicioSesion.html" }),
+  passport.authenticate("google", { failureRedirect: "/index.html" }),
   (req, res) => {
     res.send(`
       <script>
@@ -90,4 +90,55 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ success: false, message: "Error en el servidor" });
   }
 });
+app.get("/", (req, res) => {
+  res.redirect("/inicioSesion.html");
+});
+app.post("/topico", async (req, res) => {
+  const { titulo, descripcion, profesor } = req.body;
+
+  try {
+    const query = `
+      INSERT INTO topico (titulo, descripcion, profesor_nombre)
+      VALUES ($1, $2, $3)
+      RETURNING *;
+    `;
+    const result = await pool.query(query, [titulo, descripcion, profesor]);
+
+    res.json({ success: true, topico: result.rows[0] });
+  } catch (err) {
+    console.error("Error al crear tópico:", err);
+    res.status(500).json({ success: false, message: "Error al crear tópico" });
+  }
+});
+
+app.get("/listar-topicos", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM topico ORDER BY creado_en DESC");
+    res.json({ success: true, topicos: result.rows });
+  } catch (err) {
+    console.error("Error al listar tópicos:", err);
+    res.status(500).json({ success: false, message: "Error al obtener tópicos" });
+  }
+});
+app.get("/listar-estudiantes", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM usuarios WHERE rol = 'ESTUDIANTE' ORDER BY nombre_completo");
+    res.json({ success: true, usuarios: result.rows });
+  } catch (err) {
+    console.error("Error al listar estudiantes:", err);
+    res.status(500).json({ success: false, message: "Error al obtener estudiantes" });
+  }
+});
+
+app.get("/listar-profesores", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM usuarios WHERE rol = 'PROFESOR' ORDER BY nombre_completo");
+    res.json({ success: true, usuarios: result.rows });
+  } catch (err) {
+    console.error("Error al listar profesores:", err);
+    res.status(500).json({ success: false, message: "Error al obtener profesores" });
+  }
+});
+
+
 app.listen(3000, () => console.log("Servidor corriendo en http://localhost:3000"));
