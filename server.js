@@ -1,3 +1,4 @@
+
 // server.js
 import express from "express";
 import pkg from "pg";
@@ -6,6 +7,7 @@ import passport from "passport";
 import session from "express-session";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import path from "path";
+import { Strategy as MicrosoftStrategy } from "passport-microsoft";
 
 const { Pool } = pkg;
 const app = express();
@@ -39,6 +41,45 @@ app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "em
 
 app.get("/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/index.html" }),
+  (req, res) => {
+    res.send(`
+      <script>
+        localStorage.setItem("usuario", JSON.stringify({ nombre_completo: "${req.user.displayName}" }));
+        window.location.href = "/inicio.html";
+      </script>
+    `);
+  }
+);
+
+passport.use(
+  new MicrosoftStrategy(
+    {
+      clientID: "71a75853-f32e-45be-b73e-7b253546ecb2",
+      clientSecret: "67643b75-d8dc-4920-be45-d4f04c5e0bcc", 
+      callbackURL: "http://localhost:3000/auth/microsoft/callback",
+      tenant: "f62f1dc1-51a6-4aff-9fd6-78dd7292f135",
+      scope: ["user.read"],
+    },
+    (accessToken, refreshToken, profile, done) => {
+      // Aquí puedes guardar o validar al usuario en tu BD
+      return done(null, profile);
+    }
+  )
+);
+
+// Manejo de sesión (requerido por Passport)
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
+app.get("/auth/microsoft", passport.authenticate("microsoft", { prompt: "select_account" }));
+
+// 🔹 Callback de Microsoft
+app.get(
+  "/auth/microsoft/callback",
+  passport.authenticate("microsoft", { failureRedirect: "/index.html" }),
   (req, res) => {
     res.send(`
       <script>
