@@ -1,0 +1,24 @@
+{
+  "name": "realtime-topics-app-server",
+  "version": "1.0.0",
+  "description": "Backend for the realtime topics application using WebSockets.",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "dev": "ts-node-dev src/index.ts"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "ws": "^8.5.0",
+    "typescript": "^4.5.4"
+  },
+  "devDependencies": {
+    "ts-node": "^10.4.0",
+    "ts-node-dev": "^1.1.8",
+    "@types/express": "^4.17.13",
+    "@types/ws": "^8.5.0"
+  },
+  "author": "Your Name",
+  "license": "MIT"
+}
