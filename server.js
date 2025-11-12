@@ -179,6 +179,31 @@ app.get("/listar-profesores", async (req, res) => {
     res.status(500).json({ success: false, message: "Error al obtener profesores" });
   }
 });
+app.put("/editar-topico/:id", async (req, res) => {
+  const { id } = req.params;
+  const { titulo, descripcion, url_video } = req.body;
+
+  try {
+    await pool.query(
+      "UPDATE topico SET nombre = $1, descripcion = $2, url_video = $3 WHERE id = $4",
+      [titulo, descripcion, url_video, id]
+    );
+
+    // Guardar la fecha de actualización
+    await pool.query(
+      "INSERT INTO historial_actualizaciones (topico_id) VALUES ($1)",
+      [id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error al actualizar tópico:", err);
+    res.status(500).json({ success: false });
+  }
+});
+
+
+
 
 
 app.listen(3000, () => console.log("Servidor corriendo en http://localhost:3000"));
