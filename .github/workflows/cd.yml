@@ -1,0 +1,25 @@
+name: CD
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t spidev1-app .
+
+      # (Opcional) Publica la imagen en DockerHub/GHCR si tienes configurados los secretos
+      # - name: Login to DockerHub
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      #
+      # - name: Push image to DockerHub
+      #   run: docker push <tu_usuario>/spidev1-app:latest
