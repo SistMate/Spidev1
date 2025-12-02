@@ -50,6 +50,8 @@ footer {
     margin-top: 20px;
 }
 .contenedor {
+  position: relative; 
+  padding-left: 100px; 
     width: 80%;            
     max-width: 1000px;      
     margin: 50px auto;     
@@ -66,6 +68,18 @@ footer {
 .contenedor1 {
     width: 80%;            
     max-width: 1000px;      
+    margin: 50px auto;     
+    background: Transparent;     
+    padding: 20px;         
+    text-align: center;    
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color:#ffffff;
+    font-size: 40px;
+}
+
+.contenedor2 {
+    width: 80%;            
+    max-width: 1500px;      
     margin: 50px auto;     
     background: Transparent;     
     padding: 20px;         
@@ -102,4 +116,56 @@ footer {
 
 .divider:not(:empty)::after {
   margin-left: 10px;
+}
+.icono-superior {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 100px;
+  height: auto;
+}
+
+#descrip {
+  padding: 5px;
+  height: 300px;
+  margin-right: 15px;
+  border-radius: 20px;
+  width: 400px;
+  font-size: 20px;
+  word-wrap: break-word;       /* Divide palabras largas */
+  overflow-wrap: break-word;   /* Alternativa moderna */
+  white-space: normal;         /* Permite salto automático de línea */
+  resize: none;                /* (Opcional) evita que el usuario cambie el tamaño */
+}
+
+.contenedor-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+  margin-top: 30px;
+}
+
+.video-container {
+  flex: 1;
+  text-align: center;
+}
+
+.video-container iframe {
+  width: 100%;
+  max-width: 600px;
+  height: 350px;
+  border-radius: 20px;
+  border: none;
+}
+
+.descripcion-container {
+  flex: 1;
+  text-align: left;
+  background: rgba(255,255,255,0.1);
+  padding: 20px;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1.6;
 }
