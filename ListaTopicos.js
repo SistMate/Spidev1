@@ -1,29 +1,30 @@
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const res = await fetch("http://localhost:3000/listar-topicos");
-    const data = await res.json();
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Lista de Tópicos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="contenedor">
+    <h1>LISTA DE TÓPICOS</h1>
+    </div>
+    <div class="contenedor1">
+    <table id="tablaTopicos">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Descripción</th>
+          <th>url</th>
+          <th>Creado</th>
+          <th>Actualizado</th>
+          <th>Historial</th>
+        </tr>
+      </thead>
+      <tbody>
+    </table>
+  </div>
 
-    if (data.success) {
-      const tbody = document.querySelector("#tablaTopicos tbody");
-
-      data.topicos.forEach(topico => {
-        const fila = document.createElement("tr");
-
-        fila.innerHTML = `
-          <td>${topico.id}</td>
-          <td>${topico.titulo}</td>
-          <td>${topico.descripcion}</td>
-          <td>${topico.profesor_nombre}</td>
-          <td>${new Date(topico.creado_en).toLocaleString()}</td>
-        `;
-
-        tbody.appendChild(fila);
-      });
-    } else {
-      alert("No se pudieron cargar los tópicos.");
-    }
-  } catch (err) {
-    console.error("Error al obtener tópicos:", err);
-    alert("Error de conexión con el servidor.");
-  }
-});
+  <script src="ListaTopicos.js"></script>
+</body>
+</html>
