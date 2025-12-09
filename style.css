@@ -132,10 +132,10 @@ footer {
   border-radius: 20px;
   width: 400px;
   font-size: 20px;
-  word-wrap: break-word;       /* Divide palabras largas */
-  overflow-wrap: break-word;   /* Alternativa moderna */
-  white-space: normal;         /* Permite salto automático de línea */
-  resize: none;                /* (Opcional) evita que el usuario cambie el tamaño */
+  word-wrap: break-word;       
+  overflow-wrap: break-word;   
+  white-space: normal;         
+  resize: none;                
 }
 
 .contenedor-flex {
@@ -168,4 +168,181 @@ footer {
   color: #fff;
   font-size: 22px;
   line-height: 1.6;
+}
+
+#tablaTopicos {
+  width: 100%;
+  border-collapse: collapse;    
+  background: white;
+  border-radius: 28px;
+  overflow: hidden;             
+  font-size: 22px;
+}
+
+#tablaTopicos thead th {
+  background: white;
+  color: #0077cc;
+  padding: 15px;
+  font-size: 30px;
+  border-bottom: 3px solid #0077cc;
+  text-align: center;
+}
+
+#tablaTopicos td {
+  padding: 15px;
+  text-align: center;
+  font-size: 20px;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+}
+
+#tablaTopicos input,
+#tablaTopicos textarea {
+  width: 95%;
+  font-size: 20px;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid #bbb;
+}
+
+#tablaTopicos tr:last-child td {
+  border-bottom: none;
+}
+
+#tablaTopicos tbody tr:hover {
+  background: #f3faff;
+}
+
+#tablaTopicos button {
+  margin: 5px;
+  font-size: 0px;
+  padding: 12px;
+  border-radius: 50%;
+  height: 45px;
+  width: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #0077cc;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+#tablaTopicos button:hover {
+  background: #005FCC;
+}
+
+#tablaTopicos button.guardar::before {
+  content: "✔";
+  font-size: 24px;
+  color: #fff;
+}
+#tablaTopicos button.cancelar::before {
+  content: "✖";
+  font-size: 22px;
+  color: #fff;
+}
+#tablaProfesores {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 28px;
+  overflow: hidden;
+  font-size: 22px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+#tablaProfesores thead th {
+  background: linear-gradient(90deg, #fff 70%, #0077cc 100%);
+  color: #0077cc;
+  padding: 18px;
+  font-size: 32px;
+  font-weight: bold;
+  border-bottom: 3px solid #0077cc;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+#tablaProfesores td {
+  padding: 16px;
+  text-align: center;
+  font-size: 22px;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+}
+
+#tablaProfesores tr:last-child td {
+  border-bottom: none;
+}
+
+#tablaProfesores tbody tr:hover {
+  background: #f0f8ff;
+  transition: 0.2s ease;
+}
+
+#tablaProfesores thead th:first-child {
+  border-top-left-radius: 28px;
+}
+#tablaProfesores thead th:last-child {
+  border-top-right-radius: 28px;
+}
+#tablaProfesores tr:last-child td:first-child {
+  border-bottom-left-radius: 28px;
+}
+#tablaProfesores tr:last-child td:last-child {
+  border-bottom-right-radius: 28px;
+}
+#tablaEstudiantes {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 30px;
+  overflow: hidden;
+  font-size: 22px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  margin-top: 20px;
+}
+
+
+#tablaEstudiantes thead th {
+  background: linear-gradient(90deg, #f8fbff 70%, #0077cc 100%);
+  color: #0077cc;
+  padding: 18px;
+  font-size: 32px;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 3px solid #0077cc;
+  letter-spacing: 2px;
+}
+
+
+#tablaEstudiantes td {
+  padding: 16px;
+  text-align: center;
+  font-size: 22px;
+  color: #333;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+
+#tablaEstudiantes tbody tr {
+  transition: background 0.2s ease;
+}
+#tablaEstudiantes tbody tr:hover {
+  background: #f4faff;
+}
+
+
+#tablaEstudiantes thead th:first-child {
+  border-top-left-radius: 30px;
+}
+#tablaEstudiantes thead th:last-child {
+  border-top-right-radius: 30px;
+}
+#tablaEstudiantes tr:last-child td:first-child {
+  border-bottom-left-radius: 30px;
+}
+#tablaEstudiantes tr:last-child td:last-child {
+  border-bottom-right-radius: 30px;
 }
