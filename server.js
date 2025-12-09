@@ -22,9 +22,9 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/InicioSesion.html');
 });
 
-app.get('/usuarios', async (req, res) => {
+app.get('/usuario', async (req, res) => {
   try {
-    const snapshot = await db.collection('Usuarios').get();
+    const snapshot = await db.collection('Usuario').get();
     const usuarios = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
@@ -35,19 +35,19 @@ app.get('/usuarios', async (req, res) => {
   }
 });
 
-app.post('/usuarios', async (req, res) => {
+app.post('/usuario', async (req, res) => {
   try {
     const data = req.body;
-    const docRef = await db.collection('Usuarios').add(data);
+    const docRef = await db.collection('Usuario').add(data);
     res.json({ id: docRef.id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/usuarios/:id', async (req, res) => {
+app.get('/usuario/:id', async (req, res) => {
   try {
-    const doc = await db.collection('Usuarios').doc(req.params.id).get();
+    const doc = await db.collection('Usuario').doc(req.params.id).get();
     if (!doc.exists) return res.status(404).json({ error: 'No encontrado' });
     res.json({ id: doc.id, ...doc.data() });
   } catch (err) {
@@ -55,18 +55,18 @@ app.get('/usuarios/:id', async (req, res) => {
   }
 });
 
-app.put('/usuarios/:id', async (req, res) => {
+app.put('/usuario/:id', async (req, res) => {
   try {
-    await db.collection('Usuarios').doc(req.params.id).update(req.body);
+    await db.collection('Usuario').doc(req.params.id).update(req.body);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.delete('/usuarios/:id', async (req, res) => {
+app.delete('/usuario/:id', async (req, res) => {
   try {
-    await db.collection('Usuarios').doc(req.params.id).delete();
+    await db.collection('Usuario').doc(req.params.id).delete();
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -109,8 +109,27 @@ app.get('/topico/:id', async (req, res) => {
 
 app.put('/topico/:id', async (req, res) => {
   try {
-    await db.collection('Topico').doc(req.params.id).update(req.body);
+    // Referencia al documento actual
+    const docRef = db.collection('Topico').doc(req.params.id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) return res.status(404).json({ error: 'No encontrado' });
+
+    // Historial actual
+    let historial = doc.data().historial_modificacion || [];
+
+    // Nueva fecha de modificación
+    const fecha_modificacion = new Date().toISOString();
+    historial.push(fecha_modificacion);
+
+    // Actualiza con los nuevos datos y historial
+    await docRef.update({
+      ...req.body,
+      historial_modificacion: historial
+    });
+
     res.json({ success: true });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -125,8 +144,53 @@ app.delete('/topico/:id', async (req, res) => {
   }
 });
 
+app.post('/login', async (req, res) => {
+  const { email, contrasena } = req.body;
+
+  try {
+    const snapshot = await db.collection('Usuario')
+      .where('email', '==', email)
+      .where('contrasena', '==', contrasena)
+      .get();
+
+    if (snapshot.empty) {
+      return res.json({
+        success: false,
+        message: 'Correo o contraseña incorrectos'
+      });
+    }
+
+    const usuario = snapshot.docs[0].data();
+    usuario.id = snapshot.docs[0].id;
+
+    res.json({
+      success: true,
+      user: usuario
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+app.get('/estudiantes', async (req, res) => {
+  try {
+    const snapshot = await db.collection('Usuario')
+      .where('rol', '==', 'ESTUDIANTE')
+      .get();
+
+    const estudiantes = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    res.json(estudiantes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor iniciado en puerto ${PORT}`);
+  console.log(Servidor iniciado en puerto ${PORT});
 });
