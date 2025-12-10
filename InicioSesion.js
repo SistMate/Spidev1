@@ -8,7 +8,7 @@ document.getElementById("btIni").addEventListener("click", async () => {
   }
 
   try {
-    const res = await const res = await fetch("/api/login", {
+    const res = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, contrasena }),
@@ -18,7 +18,7 @@ document.getElementById("btIni").addEventListener("click", async () => {
 
     if (result.success) {
       localStorage.setItem("usuario", JSON.stringify(result.user));
-      // Redirige según el campo "rol"
+
       switch ((result.user.rol || "").toUpperCase()) {
         case "ADMINISTRADOR":
           window.location.href = "MenuAdmin.html";
@@ -27,7 +27,7 @@ document.getElementById("btIni").addEventListener("click", async () => {
           window.location.href = "MenuProfesor.html";
           break;
         default:
-          window.location.href = "inicio.html"; // u otra pantalla genérica
+          window.location.href = "inicio.html";
           break;
       }
     } else {
@@ -38,4 +38,3 @@ document.getElementById("btIni").addEventListener("click", async () => {
     alert("Error de conexión con el servidor");
   }
 });
-
