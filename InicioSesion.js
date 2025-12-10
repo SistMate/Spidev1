@@ -8,7 +8,7 @@ document.getElementById("btIni").addEventListener("click", async () => {
   }
 
   try {
-   const res = await fetch("/api/login", {
+  const res = await fetch("/api/login", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ email, contrasena }),
@@ -38,4 +38,5 @@ document.getElementById("btIni").addEventListener("click", async () => {
     alert("Error de conexión con el servidor");
   }
 });
+
 
