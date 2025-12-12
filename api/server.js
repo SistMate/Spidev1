@@ -1,165 +1,220 @@
+const express = require("express");
 const admin = require("firebase-admin");
+const session = require("express-session");
+const path = require("path");
 const { OAuth2Client } = require("google-auth-library");
 
 const serviceAccount = require("./serviceAccountKey.json");
 
+// Inicializar Firebase
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
-const client = new OAuth2Client(
-  "984668232844-u7g7om3do2kpb9mn7g5slk3arbe100df.apps.googleusercontent.com"
-);
+const client = new OAuth2Client("TU_CLIENT_ID_DE_GOOGLE"); // Cambia por tu client ID
 
-// Exportamos la función para Vercel
-module.exports = async (req, res) => {
-  const { method, url, body, query } = req;
+const app = express();
 
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(session({
+  secret: "clave_secreta_123",
+  resave: false,
+  saveUninitialized: true
+}));
+
+// Servir archivos estáticos (HTML, CSS, JS) desde la raíz
+app.use(express.static(__dirname));
+
+// ------------------ FRONTEND ------------------
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
+app.get("/inicio.html", (req, res) => res.sendFile(path.join(__dirname, "inicio.html")));
+app.get("/InicioSesion.html", (req, res) => res.sendFile(path.join(__dirname, "InicioSesion.html")));
+
+// ------------------ GOOGLE OAUTH ------------------
+app.get("/auth/google", (req, res) => {
+  const url = client.generateAuthUrl({
+    access_type: "offline",
+    scope: ["profile", "email"]
+  });
+  res.redirect(url);
+});
+
+app.get("/auth/google/callback", async (req, res) => {
   try {
-    // ------------------ USUARIOS ------------------
-    if (url.startsWith("/api/usuario")) {
-      const parts = url.split("/");
-      const id = parts.length > 3 ? parts[3] : null;
+    const code = req.query.code;
+    const { tokens } = await client.getToken(code);
+    client.setCredentials(tokens);
 
-      if (method === "GET") {
-        if (id) {
-          const doc = await db.collection("Usuario").doc(id).get();
-          if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
-          return res.json({ id: doc.id, ...doc.data() });
-        } else {
-          const snapshot = await db.collection("Usuario").get();
-          return res.json(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        }
-      }
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: "TU_CLIENT_ID_DE_GOOGLE"
+    });
 
-      if (method === "POST") {
-        const docRef = await db.collection("Usuario").add(body);
-        return res.json({ id: docRef.id });
-      }
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const nombre = payload.name;
 
-      if (method === "PUT" && id) {
-        await db.collection("Usuario").doc(id).update(body);
-        return res.json({ success: true });
-      }
+    const snap = await db.collection("Usuario").where("email", "==", email).get();
+    let userData;
 
-      if (method === "DELETE" && id) {
-        await db.collection("Usuario").doc(id).delete();
-        return res.json({ success: true });
-      }
-    }
-
-    // ------------------ TÓPICOS ------------------
-    if (url.startsWith("/api/topico")) {
-      const parts = url.split("/");
-      const id = parts.length > 3 ? parts[3] : null;
-
-      if (method === "GET") {
-        if (id) {
-          const doc = await db.collection("Topico").doc(id).get();
-          if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
-          return res.json({ id: doc.id, ...doc.data() });
-        } else {
-          const snapshot = await db.collection("Topico").get();
-          return res.json(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        }
-      }
-
-      if (method === "POST") {
-        const docRef = await db.collection("Topico").add(body);
-        return res.json({ id: docRef.id });
-      }
-
-      if (method === "PUT" && id) {
-        const docRef = db.collection("Topico").doc(id);
-        const doc = await docRef.get();
-        if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
-
-        let historial = doc.data().historial_modificacion || [];
-        historial.push(new Date().toISOString());
-
-        await docRef.update({ ...body, historial_modificacion: historial });
-        return res.json({ success: true });
-      }
-
-      if (method === "DELETE" && id) {
-        await db.collection("Topico").doc(id).delete();
-        return res.json({ success: true });
-      }
-    }
-
-    // ------------------ LOGIN ------------------
-    if (url === "/api/login" && method === "POST") {
-      const { email, contrasena } = body;
-
-      const snapshot = await db
-        .collection("Usuario")
-        .where("email", "==", email)
-        .where("contrasena", "==", contrasena)
-        .get();
-
-      if (snapshot.empty) {
-        return res.json({ success: false, message: "Correo o contraseña incorrectos" });
-      }
-
-      const usuario = snapshot.docs[0].data();
-      usuario.id = snapshot.docs[0].id;
-      return res.json({ success: true, user: usuario });
-    }
-
-    // ------------------ ESTUDIANTES ------------------
-    if (url === "/api/estudiantes" && method === "GET") {
-      const snapshot = await db.collection("Usuario").where("rol", "==", "ESTUDIANTE").get();
-      const estudiantes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      return res.json(estudiantes);
-    }
-
-    // ------------------ GOOGLE OAUTH ------------------
-    if (url === "/api/auth/google" && method === "GET") {
-      const urlAuth = client.generateAuthUrl({
-        access_type: "offline",
-        scope: ["profile", "email"],
+    if (snap.empty) {
+      const nuevo = await db.collection("Usuario").add({
+        nombre,
+        email,
+        rol: "ESTUDIANTE",
+        proveedor: "google"
       });
-      return res.redirect(urlAuth);
+      userData = { id: nuevo.id, nombre, email, rol: "ESTUDIANTE" };
+    } else {
+      userData = { id: snap.docs[0].id, ...snap.docs[0].data() };
     }
 
-    if (url.startsWith("/api/auth/google/callback") && method === "GET") {
-      const code = query.code;
-      const { tokens } = await client.getToken(code);
-      client.setCredentials(tokens);
-
-      const ticket = await client.verifyIdToken({
-        idToken: tokens.id_token,
-        audience:
-          "984668232844-u7g7om3do2kpb9mn7g5slk3arbe100df.apps.googleusercontent.com",
-      });
-
-      const payload = ticket.getPayload();
-      const email = payload.email;
-      const nombre = payload.name;
-
-      const snap = await db.collection("Usuario").where("email", "==", email).get();
-      let userData;
-
-      if (snap.empty) {
-        const nuevo = await db.collection("Usuario").add({
-          nombre,
-          email,
-          rol: "ESTUDIANTE",
-          proveedor: "google",
-        });
-        userData = { id: nuevo.id, nombre, email, rol: "ESTUDIANTE" };
-      } else {
-        userData = { id: snap.docs[0].id, ...snap.docs[0].data() };
-      }
-
-      return res.redirect(`/inicio.html?user=${encodeURIComponent(JSON.stringify(userData))}`);
-    }
-
-    // ------------------ RUTA NO ENCONTRADA ------------------
-    return res.status(404).json({ error: "Ruta no encontrada" });
+    res.redirect(`/inicio.html?user=${encodeURIComponent(JSON.stringify(userData))}`);
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: err.message });
+    res.redirect("/InicioSesion.html");
   }
-};
+});
+
+// ------------------ USUARIOS ------------------
+app.get("/api/usuario", async (req, res) => {
+  try {
+    const snapshot = await db.collection("Usuario").get();
+    const usuarios = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(usuarios);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/usuario", async (req, res) => {
+  try {
+    const docRef = await db.collection("Usuario").add(req.body);
+    res.json({ id: docRef.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/usuario/:id", async (req, res) => {
+  try {
+    const doc = await db.collection("Usuario").doc(req.params.id).get();
+    if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
+    res.json({ id: doc.id, ...doc.data() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/usuario/:id", async (req, res) => {
+  try {
+    await db.collection("Usuario").doc(req.params.id).update(req.body);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/usuario/:id", async (req, res) => {
+  try {
+    await db.collection("Usuario").doc(req.params.id).delete();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ------------------ TÓPICOS ------------------
+app.get("/api/topico", async (req, res) => {
+  try {
+    const snapshot = await db.collection("Topico").get();
+    const topicos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(topicos);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/topico", async (req, res) => {
+  try {
+    const docRef = await db.collection("Topico").add(req.body);
+    res.json({ id: docRef.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/topico/:id", async (req, res) => {
+  try {
+    const doc = await db.collection("Topico").doc(req.params.id).get();
+    if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
+    res.json({ id: doc.id, ...doc.data() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/topico/:id", async (req, res) => {
+  try {
+    const docRef = db.collection("Topico").doc(req.params.id);
+    const doc = await docRef.get();
+    if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
+
+    let historial = doc.data().historial_modificacion || [];
+    historial.push(new Date().toISOString());
+
+    await docRef.update({ ...req.body, historial_modificacion: historial });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/topico/:id", async (req, res) => {
+  try {
+    await db.collection("Topico").doc(req.params.id).delete();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ------------------ LOGIN ------------------
+app.post("/api/login", async (req, res) => {
+  const { email, contrasena } = req.body;
+  try {
+    const snapshot = await db.collection("Usuario")
+      .where("email", "==", email)
+      .where("contrasena", "==", contrasena)
+      .get();
+
+    if (snapshot.empty) {
+      return res.json({ success: false, message: "Correo o contraseña incorrectos" });
+    }
+
+    const usuario = snapshot.docs[0].data();
+    usuario.id = snapshot.docs[0].id;
+
+    res.json({ success: true, user: usuario });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ------------------ ESTUDIANTES ------------------
+app.get("/api/estudiantes", async (req, res) => {
+  try {
+    const snapshot = await db.collection("Usuario").where("rol", "==", "ESTUDIANTE").get();
+    const estudiantes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(estudiantes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ------------------ INICIO DEL SERVIDOR ------------------
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
