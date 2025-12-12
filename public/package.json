@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "express": "^5.2.1",
+    "express-session": "^1.18.2",
+    "firebase": "^12.6.0",
+    "firebase-admin": "^13.6.0",
+    "google-auth-library": "^10.5.0"
+  }
+}
