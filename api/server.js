@@ -12,25 +12,25 @@ const client = new OAuth2Client(
   "984668232844-u7g7om3do2kpb9mn7g5slk3arbe100df.apps.googleusercontent.com"
 );
 
-// Vercel usa Serverless Functions: exportamos la función
+// Exportamos la función para Vercel
 module.exports = async (req, res) => {
   const { method, url, body, query } = req;
 
   try {
-    // ---------- Rutas API ----------
+    // ------------------ USUARIOS ------------------
     if (url.startsWith("/api/usuario")) {
-      const id = url.split("/").pop();
-
-      if (method === "GET" && id && id !== "usuario") {
-        const doc = await db.collection("Usuario").doc(id).get();
-        if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
-        return res.json({ id: doc.id, ...doc.data() });
-      }
+      const parts = url.split("/");
+      const id = parts.length > 3 ? parts[3] : null;
 
       if (method === "GET") {
-        const snapshot = await db.collection("Usuario").get();
-        const usuarios = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        return res.json(usuarios);
+        if (id) {
+          const doc = await db.collection("Usuario").doc(id).get();
+          if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
+          return res.json({ id: doc.id, ...doc.data() });
+        } else {
+          const snapshot = await db.collection("Usuario").get();
+          return res.json(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        }
       }
 
       if (method === "POST") {
@@ -38,30 +38,31 @@ module.exports = async (req, res) => {
         return res.json({ id: docRef.id });
       }
 
-      if (method === "PUT" && id && id !== "usuario") {
+      if (method === "PUT" && id) {
         await db.collection("Usuario").doc(id).update(body);
         return res.json({ success: true });
       }
 
-      if (method === "DELETE" && id && id !== "usuario") {
+      if (method === "DELETE" && id) {
         await db.collection("Usuario").doc(id).delete();
         return res.json({ success: true });
       }
     }
 
+    // ------------------ TÓPICOS ------------------
     if (url.startsWith("/api/topico")) {
-      const id = url.split("/").pop();
-
-      if (method === "GET" && id && id !== "topico") {
-        const doc = await db.collection("Topico").doc(id).get();
-        if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
-        return res.json({ id: doc.id, ...doc.data() });
-      }
+      const parts = url.split("/");
+      const id = parts.length > 3 ? parts[3] : null;
 
       if (method === "GET") {
-        const snapshot = await db.collection("Topico").get();
-        const topicos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        return res.json(topicos);
+        if (id) {
+          const doc = await db.collection("Topico").doc(id).get();
+          if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
+          return res.json({ id: doc.id, ...doc.data() });
+        } else {
+          const snapshot = await db.collection("Topico").get();
+          return res.json(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        }
       }
 
       if (method === "POST") {
@@ -69,7 +70,7 @@ module.exports = async (req, res) => {
         return res.json({ id: docRef.id });
       }
 
-      if (method === "PUT" && id && id !== "topico") {
+      if (method === "PUT" && id) {
         const docRef = db.collection("Topico").doc(id);
         const doc = await docRef.get();
         if (!doc.exists) return res.status(404).json({ error: "No encontrado" });
@@ -81,12 +82,13 @@ module.exports = async (req, res) => {
         return res.json({ success: true });
       }
 
-      if (method === "DELETE" && id && id !== "topico") {
+      if (method === "DELETE" && id) {
         await db.collection("Topico").doc(id).delete();
         return res.json({ success: true });
       }
     }
 
+    // ------------------ LOGIN ------------------
     if (url === "/api/login" && method === "POST") {
       const { email, contrasena } = body;
 
@@ -105,12 +107,14 @@ module.exports = async (req, res) => {
       return res.json({ success: true, user: usuario });
     }
 
+    // ------------------ ESTUDIANTES ------------------
     if (url === "/api/estudiantes" && method === "GET") {
       const snapshot = await db.collection("Usuario").where("rol", "==", "ESTUDIANTE").get();
-      const estudiantes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const estudiantes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       return res.json(estudiantes);
     }
 
+    // ------------------ GOOGLE OAUTH ------------------
     if (url === "/api/auth/google" && method === "GET") {
       const urlAuth = client.generateAuthUrl({
         access_type: "offline",
@@ -152,7 +156,7 @@ module.exports = async (req, res) => {
       return res.redirect(`/inicio.html?user=${encodeURIComponent(JSON.stringify(userData))}`);
     }
 
-    // Si la ruta no coincide
+    // ------------------ RUTA NO ENCONTRADA ------------------
     return res.status(404).json({ error: "Ruta no encontrada" });
   } catch (err) {
     console.error(err);
