@@ -25,7 +25,7 @@ app.use(
   })
 );
 
-app.use(express.static(path.join(__dirname, "../public")));
+
 
 const client = new OAuth2Client(
   "984668232844-u7g7om3do2kpb9mn7g5slk3arbe100df.apps.googleusercontent.com"
