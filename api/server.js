@@ -12,7 +12,7 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-const client = new OAuth2Client("TU_CLIENT_ID_DE_GOOGLE"); // Cambia por tu client ID
+const client = new OAuth2Client("TU_CLIENT_ID_DE_GOOGLE"); // reemplaza con tu Client ID
 
 const app = express();
 
@@ -25,16 +25,16 @@ app.use(session({
   saveUninitialized: true
 }));
 
-// Servir archivos estáticos (HTML, CSS, JS) desde la raíz
+// Servir archivos estáticos desde la raíz
 app.use(express.static(__dirname));
 
 // ------------------ FRONTEND ------------------
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
-app.get("/inicio.html", (req, res) => res.sendFile(path.join(__dirname, "inicio.html")));
 app.get("/InicioSesion.html", (req, res) => res.sendFile(path.join(__dirname, "InicioSesion.html")));
+app.get("/inicio.html", (req, res) => res.sendFile(path.join(__dirname, "inicio.html")));
 
 // ------------------ GOOGLE OAUTH ------------------
-app.get("/auth/google", (req, res) => {
+app.get("/api/auth/google", (req, res) => {
   const url = client.generateAuthUrl({
     access_type: "offline",
     scope: ["profile", "email"]
@@ -42,7 +42,7 @@ app.get("/auth/google", (req, res) => {
   res.redirect(url);
 });
 
-app.get("/auth/google/callback", async (req, res) => {
+app.get("/api/auth/google/callback", async (req, res) => {
   try {
     const code = req.query.code;
     const { tokens } = await client.getToken(code);
@@ -191,9 +191,7 @@ app.post("/api/login", async (req, res) => {
       .where("contrasena", "==", contrasena)
       .get();
 
-    if (snapshot.empty) {
-      return res.json({ success: false, message: "Correo o contraseña incorrectos" });
-    }
+    if (snapshot.empty) return res.json({ success: false, message: "Correo o contraseña incorrectos" });
 
     const usuario = snapshot.docs[0].data();
     usuario.id = snapshot.docs[0].id;
